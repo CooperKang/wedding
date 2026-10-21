@@ -1,0 +1,128 @@
+import type { Profile } from '../types'
+
+// 예식일 기준 단계. from/to는 예식 며칠 전인지(from이 더 멀다). 앞으로 할 일이라 시간순으로 둔다.
+export type Phase = {
+  id: string
+  label: string
+  title: string
+  from: number | null
+  to: number
+  busy?: 'busy' | 'peak'
+  lead: string
+}
+
+export const PHASES: Phase[] = [
+  { id: 'p1', label: '10개월 이상 전', title: '큰 그림 그리기', from: null, to: 300, lead: '양가 인사, 예산과 규모를 먼저 맞춰 두면 뒤에 할 결정이 전부 쉬워져요.' },
+  { id: 'p2', label: '8~10개월 전', title: '예식장 정하기', from: 300, to: 240, lead: '날짜와 홀이 정해져야 나머지 업체 일정이 잡혀요. 인기 시즌이면 더 서두르세요.' },
+  { id: 'p3', label: '6~8개월 전', title: '스드메·신혼여행 예약', from: 240, to: 180, lead: '스튜디오·드레스·메이크업과 항공권은 좋은 날짜부터 빠져요.' },
+  { id: 'p4', label: '4~6개월 전', title: '촬영 준비·예물·신혼집', from: 180, to: 120, lead: '촬영 콘셉트와 드레스 투어, 예물과 신혼집을 이때 정리해요.' },
+  { id: 'p5', label: '2~4개월 전', title: '웨딩 촬영·한복·청첩장', from: 120, to: 60, busy: 'busy', lead: '촬영, 셀렉, 한복, 청첩장 제작이 몰리기 시작해요.' },
+  { id: 'p6', label: '1~2개월 전', title: '청첩장 돌리기·본식 준비', from: 60, to: 30, busy: 'peak', lead: '가장 바빠요. 주말마다 청첩장 모임, 평일엔 업체 연락과 결제가 겹쳐요.' },
+  { id: 'p7', label: '1주~1개월 전', title: '가봉·최종 확인', from: 30, to: 7, busy: 'busy', lead: '본식 드레스 가봉, 인원 확정, 잔금 일정 확인까지.' },
+  { id: 'p8', label: '마지막 1주', title: '전달하고 쉬기', from: 7, to: 1, lead: '역할 분담표를 돌리고, 몸 컨디션을 챙기세요.' },
+  { id: 'p9', label: '예식 당일', title: '당일', from: 1, to: 0, lead: '정해 둔 사람에게 맡기고 두 사람은 즐기세요.' },
+  { id: 'p10', label: '예식 이후', title: '정리하기', from: 0, to: -90, lead: '혼인신고, 세액공제, 정산, 감사 인사, 그리고 기록 남기기.' },
+]
+
+// must: 늦어도 예식 며칠 전에는 시작(또는 끝)해야 하는지. 고르기 어려운 인기 업체 기준.
+// when: 커플 프로필에 따라 보이거나 숨긴다
+export type Task = {
+  id: string
+  phase: string
+  title: string
+  detail: string
+  must?: number
+  key?: boolean
+  when?: (p: Profile) => boolean
+}
+
+const outdoor = (p: Profile) => p.venueStyle === 'outdoor'
+const hotel = (p: Profile) => p.venueStyle === 'hotel'
+const small = (p: Profile) => p.venueStyle === 'small'
+const sdmDiy = (p: Profile) => p.sdmMode === 'diy' || (p.sdmMode === 'undecided' && p.prepStyle === 'diy')
+
+export const TASKS: Task[] = [
+  // p1 큰 그림
+  { id: 'greet', phase: 'p1', key: true, title: '양가 인사드리기', detail: '서로의 부모님께 먼저 인사드리고, 결혼 시기에 대한 생각을 들어 두세요.' },
+  { id: 'meeting', phase: 'p1', key: true, title: '상견례', detail: '장소는 조용한 한정식이나 호텔 식당 룸이 무난해요. 예단·예물·폐백을 할지, 예식 규모를 어느 정도로 할지 큰 방향만 이야기해도 충분해요.', must: 240 },
+  { id: 'budget-talk', phase: 'p1', key: true, title: '총예산과 양가 지원 범위 합의', detail: '우리 돈이 얼마, 양가에서 도와주실 수 있는 돈이 얼마인지 먼저 정리하세요. 예산 장부에 지원금을 적어 두면 나중에 누가 무엇을 냈는지 헷갈리지 않아요.' },
+  { id: 'scale', phase: 'p1', key: true, title: '하객 규모와 예식 형태 정하기', detail: '양가 예상 하객 수를 따로 세어 보세요. 하객 수가 홀 크기와 식대 예산을 거의 다 정해요.' },
+  { id: 'season', phase: 'p1', title: '예식 시기 고르기', detail: '봄(4~5월)·가을(9~11월) 토요일 점심은 가장 빨리 마감돼요. 비수기(7~8월, 1~2월)나 일요일·저녁 예식은 같은 홀도 조건이 좋아지는 경우가 많아요.' },
+  { id: 'account', phase: 'p1', title: '결혼 준비 공동 통장 만들기', detail: '두 사람이 모은 돈과 양가 지원금을 한 통장에 모으면 계약금·잔금 관리가 쉬워요.' },
+  { id: 'criteria', phase: 'p1', title: '박람회·상담 전에 우리 기준 적기', detail: '예산 상한, 하객 수, 원하는 지역, 꼭 필요한 것(주차, 식사, 교통)을 적어 가세요. 기준 없이 가면 당일 할인에 휩쓸려 계약하기 쉬워요.' },
+  { id: 'planner-compare', phase: 'p1', title: '플래너 2~3곳 비교 상담', detail: '같은 조건(날짜, 지역, 예산)으로 물어보고, 패키지에 무엇이 포함되고 빠지는지 표로 비교하세요. 상담만으로는 비용이 들지 않는 곳이 많아요.', when: (p) => p.prepStyle === 'planner' || p.sdmMode === 'planner' },
+  { id: 'moodboard', phase: 'p1', title: '원하는 무드 모아 두기', detail: '인스타그램·핀터레스트에서 마음에 드는 홀, 드레스, 촬영 사진을 저장해 두세요. 업체 상담 때 사진을 보여 주면 대화가 훨씬 빨라요.', when: (p) => p.prepStyle === 'romance' },
+  { id: 'housing-plan', phase: 'p1', title: '신혼집 방향 정하기', detail: '전세·매매·청약 중 무엇으로 갈지 정하면 혼인신고 시기도 정해져요. 신혼부부 대출과 청약 조건은 지원 정책 탭에서 확인하세요.' },
+
+  // p2 예식장
+  { id: 'venue-shortlist', phase: 'p2', key: true, title: '예식장 후보 5곳 이내로 추리기', detail: '예식장 탭에서 지역 업체를 보고, 우리 우선순위(주차, 식사, 교통)로 걸러 보세요.', must: 210 },
+  { id: 'venue-tour', phase: 'p2', key: true, title: '예식장 투어', detail: '가능하면 실제 예식이 있는 주말에 가서 하객 동선, 로비 혼잡, 식사를 직접 보세요. 투어 체크리스트를 들고 가면 비교가 쉬워요.' },
+  { id: 'venue-tasting', phase: 'p2', title: '시식 확인', detail: '계약 전 시식이 되는지, 계약 후 무료 시식 인원은 몇 명인지 확인하세요. 하객이 가장 오래 기억하는 게 식사예요.' },
+  { id: 'venue-contract', phase: 'p2', key: true, title: '예식장 계약', detail: '보증인원, 식대, 대관료 포함 항목, 위약금 기준, 계약금 환불 조건을 계약서에 적어 받으세요. 구두 약속(서비스, 할인)도 꼭 문서로 남기세요.', must: 180 },
+  { id: 'outdoor-plan-b', phase: 'p2', title: '우천·폭염 대비안 확인', detail: '비가 오면 실내로 옮길 수 있는지, 텐트·냉난방 비용이 따로 드는지, 결정 시점은 언제인지 계약서에 적어 두세요.', when: outdoor },
+  { id: 'hotel-flower', phase: 'p2', title: '꽃장식·연출 견적 받기', detail: '호텔은 꽃장식 비용이 식대만큼 커지는 경우가 많아요. 기본 연출에 무엇이 포함되는지 먼저 확인하세요.', when: hotel },
+  { id: 'small-space', phase: 'p2', title: '장소·케이터링 따로 섭외', detail: '스몰웨딩은 레스토랑, 공공시설, 하우스 웨딩 등 선택지가 넓어요. 음향, 사회, 꽃, 촬영을 누가 맡는지 하나씩 정하세요.', when: small },
+  { id: 'public-venue', phase: 'p2', title: '공공 예식장 알아보기', detail: '지자체가 운영하는 공공 예식 공간은 대관료가 저렴하거나 무료인 곳이 있어요. 지원 정책 탭에서 확인하세요.', when: (p) => p.budgetStyle === 'minimal' || small(p) },
+
+  // p3 스드메·신혼여행
+  { id: 'sdm-decide', phase: 'p3', key: true, title: '스드메 방식 정하기', detail: '토탈 스튜디오, 플래너 패키지, 직접 발품 중 하나를 고르세요. 스드메 탭에서 장단점을 비교할 수 있어요.', must: 150 },
+  { id: 'sdm-contract', phase: 'p3', key: true, title: '스튜디오·드레스·메이크업 계약', detail: '기본 포함 항목과 추가금(원본, 수정본, 헬퍼비, 얼리스타트비, 드레스 업그레이드)을 꼭 따로 물어보세요.', must: 120 },
+  { id: 'sdm-route', phase: 'p3', title: '발품 리스트와 방문 동선 짜기', detail: '스드메 탭에서 업체를 담으면 하루에 돌 수 있는 순서를 짜 드려요. 드레스 투어는 샵당 1시간쯤, 하루 3~4곳이 적당해요.', when: sdmDiy },
+  { id: 'honeymoon', phase: 'p3', key: true, title: '신혼여행지 정하고 항공권 예약', detail: '성수기 직항은 6개월 전에도 좋은 시간대가 빠져요. 예식 다음 날 바로 떠나면 피곤하니 하루 쉬는 일정도 고려해 보세요.', must: 120 },
+  { id: 'snap', phase: 'p3', title: '본식 스냅·영상 예약', detail: '인기 작가는 토요일이 먼저 차요. 원본 제공 여부, 보정 장수, 납품 기간을 확인하세요.', must: 120 },
+  { id: 'leave', phase: 'p3', title: '결혼 휴가 확인', detail: '회사 경조 휴가 일수와 연차를 합쳐 신혼여행 일정을 맞춰 두세요.' },
+
+  // p4 촬영 준비·예물·신혼집
+  { id: 'shoot-concept', phase: 'p4', title: '웨딩 촬영 콘셉트 정하기', detail: '스튜디오 샘플에서 마음에 드는 컷 번호를 골라 두면 촬영 당일이 수월해요. 소품과 개인 의상도 미리 준비하세요.' },
+  { id: 'dress-tour', phase: 'p4', key: true, title: '촬영 드레스 투어', detail: '샵마다 피팅비가 있는 곳이 있어요. 사진 촬영이 안 되는 곳이 많으니 입은 느낌을 바로 메모하세요.' },
+  { id: 'tux', phase: 'p4', title: '신랑 예복 맞추기', detail: '맞춤은 제작에 4~6주가 걸려요. 촬영용과 본식용을 같이 쓸지 정하세요.' },
+  { id: 'rings', phase: 'p4', title: '예물·커플링 고르기', detail: '금값에 따라 가격이 크게 움직여요. 제작 기간(2~4주)을 생각해 촬영 전에 받는 게 좋아요.' },
+  { id: 'yedan', phase: 'p4', title: '예단·예물 주고받을지 합의', detail: '요즘은 생략하거나 간소화하는 경우가 많아요. 양가가 같은 기준으로 이해하고 있는지 한 번 더 확인하세요.' },
+  { id: 'home', phase: 'p4', title: '신혼집 계약과 입주 날짜', detail: '전세·매매 계약일과 대출 실행일, 입주일을 예식·신혼여행 일정과 겹치지 않게 잡으세요.' },
+  { id: 'skin', phase: 'p4', title: '피부·몸 관리 시작', detail: '시술은 촬영 2주 전까지 끝내야 붓기와 자국이 가라앉아요.' },
+
+  // p5 촬영·한복·청첩장
+  { id: 'shoot', phase: 'p5', key: true, title: '웨딩 촬영', detail: '촬영 전날은 충분히 자고, 신랑도 메이크업·헤어를 받으세요. 촬영 후 원본을 받으면 백업부터 해 두세요.', must: 75 },
+  { id: 'select', phase: 'p5', title: '사진 셀렉과 앨범 수정', detail: '셀렉 기한이 정해진 곳이 많아요. 두 사람이 따로 고른 뒤 겹치는 컷부터 확정하면 빨라요.' },
+  { id: 'hanbok', phase: 'p5', title: '혼주·신랑신부 한복 맞춤 또는 대여', detail: '맞춤은 4~6주 걸려요. 양가 어머님 한복 색을 맞출지 미리 의논하세요.', must: 60 },
+  { id: 'invite-make', phase: 'p5', key: true, title: '청첩장 제작', detail: '종이 청첩장은 인쇄에 1~2주 걸려요. 양가가 필요한 수량을 따로 받아 10~20% 여유 있게 주문하세요. 모바일 청첩장도 함께 만드세요.', must: 50 },
+  { id: 'guest-list', phase: 'p5', title: '하객 명단 정리', detail: '양가별로 청첩장을 전할 사람, 모바일로 보낼 사람을 나눠 두면 보증인원 예측에도 도움이 돼요.' },
+  { id: 'mc-song', phase: 'p5', title: '사회자·축가·주례(또는 무주례) 부탁', detail: '친한 지인에게 부탁하면 감사 선물이나 사례를 미리 생각해 두세요.' },
+  { id: 'parents-help', phase: 'p5', title: '혼주 준비 도와드리기', detail: '혼주 메이크업, 한복, 하객 안내 등 부모님이 챙기실 일을 미리 정리해 드리세요.' },
+
+  // p6 청첩장 돌리기·본식 준비
+  { id: 'invite-send', phase: 'p6', key: true, title: '청첩장 전달', detail: '직접 드릴 분은 식사 자리를 잡고, 모바일은 4~6주 전에 보내는 게 일반적이에요. 주말 일정이 몰리니 미리 달력을 나누세요.', must: 30 },
+  { id: 'dress-pick', phase: 'p6', title: '본식 드레스 고르기', detail: '본식 홀의 조명, 버진로드 길이, 천장 높이를 생각해서 고르세요.' },
+  { id: 'order', phase: 'p6', title: '식순·음악·영상 정하기', detail: '입장곡, 행진곡, 성혼선언문, 영상 상영 여부를 홀 담당자와 맞춰 보세요.' },
+  { id: 'pyebaek', phase: 'p6', title: '폐백·이바지 여부 확정', detail: '폐백실 사용료와 음식 준비를 따로 해야 하는 경우가 있어요.' },
+  { id: 'gift-return', phase: 'p6', title: '답례품·하객 선물 준비', detail: '식사를 못 하시는 하객용 답례품이나 감사 선물이 필요한지 정하세요.' },
+  { id: 'parking-guide', phase: 'p6', title: '주차·교통 안내 문구 만들기', detail: '주차 무료 시간, 가까운 역 출구, 셔틀 여부를 모바일 청첩장에 넣어 두면 당일 문의가 크게 줄어요.', when: (p) => p.priorities.includes('parking') || p.priorities.includes('transit') },
+
+  // p7 가봉·최종 확인
+  { id: 'fitting', phase: 'p7', key: true, title: '본식 드레스 가봉', detail: '신발을 신고 가봉하세요. 몸 상태 변화가 크면 한 번 더 맞출 수 있는지 물어 두세요.' },
+  { id: 'headcount', phase: 'p7', key: true, title: '보증인원·식권 확정', detail: '확정 기한이 보통 1~2주 전이에요. 너무 많이 잡으면 식대가 남고, 적게 잡으면 추가 식대가 비싸질 수 있어요.', must: 10 },
+  { id: 'balance', phase: 'p7', key: true, title: '잔금 일정과 금액 확인', detail: '예산 장부의 다가오는 지급 목록을 보고, 누가 어느 계좌에서 낼지 정해 두세요.' },
+  { id: 'roles', phase: 'p7', title: '당일 역할 분담', detail: '축의대(양가 각 2명), 가방순이, 하객 안내, 사회자, 차량을 누가 맡을지 정하고 연락처를 공유하세요.' },
+  { id: 'honeymoon-pack', phase: 'p7', title: '신혼여행 준비', detail: '여권 유효기간(6개월 이상), 비자·입국 서류, 환전, 여행자 보험을 확인하세요.' },
+  { id: 'rain-call', phase: 'p7', title: '야외 진행 여부 최종 결정', detail: '일기예보를 보고 정해 둔 시점에 실내 전환을 결정하세요.', when: outdoor },
+
+  // p8 마지막 1주
+  { id: 'rehearsal', phase: 'p8', title: '식순 리허설과 입장 연습', detail: '부모님 입장, 화촉 점화, 인사 순서를 한 번 맞춰 보세요.' },
+  { id: 'kit', phase: 'p8', title: '당일 준비물 챙기기', detail: '반지, 혼인 서약서·성혼선언문, 사례비 봉투, 식권, 축의대 장부·펜, 헬퍼비, 보조배터리, 편한 신발.' },
+  { id: 'rest', phase: 'p8', title: '충분히 쉬기', detail: '전날은 일찍 자고, 붓는 음식은 피하세요. 두 사람끼리 짧게라도 시간을 보내세요.' },
+
+  // p9 당일
+  { id: 'day-start', phase: 'p9', title: '메이크업·헤어(이른 아침)', detail: '샵 도착 시간을 거꾸로 계산해서 이동 시간을 넉넉히 두세요.' },
+  { id: 'day-money', phase: 'p9', title: '축의금·잔금 정리', detail: '축의금은 정해 둔 사람만 받고, 예식 직후 양가가 각자 정산하세요. 당일 잔금은 미리 봉투에 나눠 두세요.' },
+  { id: 'day-enjoy', phase: 'p9', title: '맡기고 즐기기', detail: '문제가 생기면 담당자에게 넘기고, 두 사람은 하객에게 인사하는 데 집중하세요.' },
+
+  // p10 이후
+  { id: 'register', phase: 'p10', key: true, title: '혼인신고', detail: '주택 청약·대출, 결혼 세액공제, 증여재산 공제 등은 혼인신고 시점이 중요해요. 지원 정책 탭에서 우리에게 유리한 시기를 확인하세요.' },
+  { id: 'settle', phase: 'p10', title: '축의금·지출 정산', detail: '예산 장부에 축의금을 들어온 돈으로 적고 양가 정산을 마무리하세요.' },
+  { id: 'thanks', phase: 'p10', title: '감사 인사', detail: '도와주신 분, 축의금을 보내 주신 분께 감사 연락을 드리세요. 신혼여행 선물도 이때 전해요.' },
+  { id: 'record', phase: 'p10', title: '우리 결혼 준비 기록 남기기', detail: '업체별 후기와 팁을 적어 공유 링크로 동생·친척에게 넘겨주세요. 다음 사람의 준비가 훨씬 쉬워져요.' },
+]
+
+export function tasksFor(p: Profile) {
+  return TASKS.filter((t) => !t.when || t.when(p))
+}

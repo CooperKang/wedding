@@ -1,0 +1,38 @@
+{
+  "name": "wedding",
+  "private": true,
+  "version": "1.0.0",
+  "description": "예비 신혼부부를 위한 결혼 준비 플래너: 성향 진단, 시기별 타임라인, 예식장·스드메 고르기, 방문 동선, 신혼부부 지원 정책, 양가 예산 장부와 공유",
+  "author": "JaeHa Kang (https://github.com/CooperKang)",
+  "license": "MIT",
+  "homepage": "https://cooperkang.github.io/wedding/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CooperKang/wedding.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "crawl": "node crawler/run.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.5"
+  }
+}

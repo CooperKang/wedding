@@ -101,7 +101,7 @@ type Task = { id; phase; title; detail; latest?: number /* 최소 시작 개월 
 - 카카오맵 `search.map.kakao.com/mapsearch/map.daum` (Referer 필요). 지역 × 분류 × 1~2페이지, 요청 간 1.2초.
   - 분류: 웨딩홀, 호텔웨딩, 스몰웨딩, 웨딩스튜디오, 웨딩드레스, 웨딩메이크업, 한복, 예물
   - 저장: id, name, cat, region, address, lat, lng, rating, ratingCount, reviewCount, parking, tel, homepage
-- 네이버 블로그 검색 `search.naver.com` HTML. 업체명 + "후기"로 검색. 한 실행에 최대 150곳, `checkedAt`이 오래된 업체부터.
+- 네이버 블로그 검색 `search.naver.com` HTML. 업체명 + "후기"로 검색. 한 실행에 최대 300곳, `checkedAt`이 오래된 업체부터.
   - 저장: postCount(첫 페이지 기준), positive/negative 키워드 개수, 상위 링크 3개(제목+URL). 본문 저장 안 함.
 - 구글 뉴스 RSS: 신혼부부 지원, 결혼 세액공제, 신혼부부 대출, 결혼장려금 등. 최근 30건, 제목 기준 중복 제거.
 - 실패 처리: 소스별 독립. 0건이면 이전 파일 유지. `meta.json`에 소스별 `{ok, count, at, error}`.
