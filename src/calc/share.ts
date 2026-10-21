@@ -20,13 +20,18 @@ async function pipe(bytes: Uint8Array, stream: CompressionStream | Decompression
   return new Uint8Array(await new Response(out).arrayBuffer())
 }
 
-// 금액을 숨기면 예산·결제·지원금 숫자를 지우고 업체와 후기만 남긴다
+// 금액을 숨기면 기록집에 보이는 것(업체, 별점, 팁, 일정)만 골라 담는다.
+// 화면에서만 가리면 링크 안에는 남으므로 메모·결제·지원금·담은 업체는 아예 넣지 않는다.
 export function stripMoney(s: Saved): Shared {
   return {
-    ...s,
+    v: 1,
     hideMoney: true,
-    items: s.items.map((i) => ({ ...i, budget: 0, payments: i.payments.map((p) => ({ ...p, amount: 0 })) })),
+    profile: s.profile,
+    checks: s.checks,
+    notes: s.notes,
+    items: s.items.map((i) => ({ id: i.id, cat: i.cat, name: i.name, vendor: i.vendor, rating: i.rating, tip: i.tip, budget: 0, payments: [], memo: '' })),
     supports: [],
+    picks: [],
   }
 }
 

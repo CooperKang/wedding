@@ -34,11 +34,14 @@ describe('공유 링크', () => {
     expect(back).toEqual({ ...saved, hideMoney: false })
   })
 
-  it('금액을 숨기면 숫자와 지원금이 빠지고 후기는 남는다', async () => {
-    const back = await decodeShare(await encodeShare(saved, true))
+  it('금액을 숨기면 금액·결제·메모·지원금이 링크에서 빠지고 팁은 남는다', async () => {
+    const code = await encodeShare({ ...saved, items: [{ ...saved.items[0], memo: '식대 8.8만원' }] }, true)
+    const back = await decodeShare(code)
     expect(back.hideMoney).toBe(true)
     expect(back.items[0].budget).toBe(0)
-    expect(back.items[0].payments[0].amount).toBe(0)
+    expect(back.items[0].payments).toEqual([])
+    expect(back.items[0].memo).toBe('')
+    expect(back.picks).toEqual([])
     expect(back.items[0].tip).toBe('주차가 넉넉해요')
     expect(back.supports).toEqual([])
   })
