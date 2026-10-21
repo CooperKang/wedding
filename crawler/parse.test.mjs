@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { CATEGORIES, REGIONS } from './config.mjs'
-import { coreName, mergeNews, mergeVendors, parseBlog, parseKakao, parseNews, pickBlogTargets, summarizeBlog } from './parse.mjs'
+import { coreName, mergeNews, mergeVendors, parseBlog, parseDaumBlog, parseKakao, parseNews, pickBlogTargets, summarizeBlog } from './parse.mjs'
 
 const fixture = (name) => readFileSync(new URL(`./fixtures/${name}`, import.meta.url), 'utf8')
 const hall = CATEGORIES.find((c) => c.id === 'hall')
@@ -75,6 +75,21 @@ describe('네이버 블로그 검색', () => {
   it('지점 이름을 떼고 비교한다', () => {
     expect(coreName('노블발렌티 대치점')).toBe('노블발렌티')
     expect(coreName('더채플앳 청담')).toBe('더채플앳청담')
+  })
+})
+
+describe('다음 블로그 검색', () => {
+  const posts = parseDaumBlog(fixture('daum.html'))
+
+  it('카드마다 제목, 주소, 미리보기를 읽는다', () => {
+    expect(posts.length).toBe(3)
+    expect(posts[0].url).toMatch(/^https:\/\/blog\.naver\.com\//)
+    expect(posts[0].title).toContain('상록아트홀')
+    expect(posts[0].snippet.length).toBeGreaterThan(10)
+  })
+
+  it('강조 표시로 띄어진 업체 이름도 센다', () => {
+    expect(summarizeBlog(posts, '상록아트홀').posts).toBe(3)
   })
 })
 

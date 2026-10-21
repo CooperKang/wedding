@@ -3,7 +3,7 @@
 // 사용: node crawler/run.mjs [vendors|blog|news ...]
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { BLOG_PER_RUN, CATEGORIES, NEWS_QUERIES, REGIONS } from './config.mjs'
-import { mergeNews, mergeVendors, parseBlog, parseKakao, parseNews, pickBlogTargets, summarizeBlog } from './parse.mjs'
+import { mergeNews, mergeVendors, parseBlog, parseDaumBlog, parseKakao, parseNews, pickBlogTargets, summarizeBlog } from './parse.mjs'
 
 const OUT = new URL('../public/data/', import.meta.url)
 const UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36'
@@ -58,26 +58,52 @@ async function crawlVendors() {
   return vendors.length
 }
 
+// 네이버 블로그 검색을 먼저 쓰고, 막히면(GitHub Actions 서버 IP는 403) 그 실행 동안은 다음 블로그 검색으로 바꾼다
+const BLOG_SOURCES = [
+  {
+    name: 'naver',
+    url: (q) => `https://search.naver.com/search.naver?ssc=tab.blog.all&query=${encodeURIComponent(q)}`,
+    parse: parseBlog,
+    empty: (html) => html.includes('검색결과가 없습니다'),
+  },
+  {
+    name: 'daum',
+    url: (q) => `https://search.daum.net/search?w=fusion&col=blog&q=${encodeURIComponent(q)}`,
+    parse: parseDaumBlog,
+    empty: (html) => html.includes('검색결과가 없습니다') || html.includes('result_none'),
+  },
+]
+
 async function crawlBlog() {
   const vendors = await readJson('vendors.json', [])
   const reviews = await readJson('reviews.json', {})
-  const targets = pickBlogTargets(vendors, reviews, BLOG_PER_RUN)
+  // BLOG_SOURCE=daum, BLOG_LIMIT=5 처럼 시험할 때 바꿀 수 있다
+  const targets = pickBlogTargets(vendors, reviews, Number(process.env.BLOG_LIMIT) || BLOG_PER_RUN)
+  let src = Math.max(0, BLOG_SOURCES.findIndex((b) => b.name === process.env.BLOG_SOURCE))
+  let fails = 0
   let done = 0
   for (const v of targets) {
+    const s = BLOG_SOURCES[src]
     try {
-      const html = await get(`https://search.naver.com/search.naver?ssc=tab.blog.all&query=${encodeURIComponent(`${v.name} 후기`)}`)
-      const posts = parseBlog(html)
-      // 결과 0건이 캡차 화면 때문이면 기록하지 않는다
-      if (!posts.length && !html.includes('검색결과가 없습니다')) throw new Error('결과를 읽지 못함(차단 가능성)')
+      const html = await get(s.url(`${v.name} 후기`))
+      const posts = s.parse(html)
+      // 결과 0건이 캡차·차단 화면 때문이면 기록하지 않는다
+      if (!posts.length && !s.empty(html)) throw new Error('결과를 읽지 못함(차단 가능성)')
       reviews[v.id] = { ...summarizeBlog(posts, v.name), at: today() }
       done++
+      fails = 0
     } catch (e) {
-      console.warn(`blog ${v.name}: ${e.message}`)
-      if (done === 0 && targets.indexOf(v) >= 4) break // 처음부터 계속 막히면 그만둔다
+      console.warn(`blog(${s.name}) ${v.name}: ${e.message}`)
+      if (++fails >= 3) {
+        if (src + 1 >= BLOG_SOURCES.length) break // 모든 소스가 막히면 그만둔다
+        src++
+        fails = 0
+        console.warn(`blog: ${BLOG_SOURCES[src].name}로 바꿈`)
+      }
     }
     await sleep(2500)
   }
-  console.log(`blog: ${done}/${targets.length}`)
+  console.log(`blog: ${done}/${targets.length} (${BLOG_SOURCES[src].name})`)
   if (!done) throw new Error('후기를 하나도 못 가져왔어요')
   // 사라진 업체의 후기는 지운다
   const ids = new Set(vendors.map((v) => v.id))

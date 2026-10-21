@@ -81,6 +81,21 @@ export function parseBlog(html) {
   return [...byUrl].map(([url, [title = '', snippet = '']]) => ({ url, title, snippet }))
 }
 
+// 다음 블로그 검색 결과 HTML → 글 목록. 카드마다 공유용 JSON에 제목·주소가 있고 미리보기는 c-contents-desc에 있다.
+// 다음 검색에는 네이버 블로그·티스토리 글이 함께 나온다.
+export function parseDaumBlog(html) {
+  return html
+    .split('<c-card')
+    .slice(1)
+    .map((c) => {
+      const title = c.match(/"TITLE":"((?:[^"\\]|\\.)*)"/)?.[1] ?? ''
+      const url = c.match(/"TH_WEB_URL_0":\s*"([^"]+)"/)?.[1] ?? ''
+      const desc = c.match(/<c-contents-desc[^>]*>([\s\S]*?)<\/c-contents-desc>/)?.[1] ?? ''
+      return { url, title: text(title.replace(/\\"/g, '"')), snippet: text(desc).replace(/[\u200b]/g, '').trim() }
+    })
+    .filter((p) => p.url.startsWith('http') && p.title)
+}
+
 // 업체 이름에서 지점·괄호를 떼고 핵심 이름만 남긴다(예: '노블발렌티 대치점' → '노블발렌티')
 export function coreName(name) {
   return name
