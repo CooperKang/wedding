@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import type { Item, Pick, Profile, Saved, Support } from './types'
+import type { Honeymoon, Item, Pick, Profile, Saved, Support } from './types'
+import { DEFAULT_GIFTS, DESTS } from './data/honeymoon'
 
 // 두 사람이 입력한 모든 것은 이 기기 브라우저에만 저장된다. 옮길 때는 파일이나 공유 링크를 쓴다.
 export const DEFAULT_PROFILE: Profile = {
@@ -15,7 +16,15 @@ export const DEFAULT_PROFILE: Profile = {
   brideName: '',
 }
 
-export const EMPTY: Saved = { v: 1, profile: DEFAULT_PROFILE, checks: {}, items: [], supports: [], picks: [], notes: '' }
+export const DEFAULT_HONEYMOON: Honeymoon = {
+  dest: DESTS[0].id,
+  nights: DESTS[0].nights,
+  costs: {},
+  gifts: DEFAULT_GIFTS.map((g, i) => ({ id: `g${i}`, ...g })),
+  quotes: [],
+}
+
+export const EMPTY: Saved = { v: 1, profile: DEFAULT_PROFILE, checks: {}, items: [], supports: [], picks: [], notes: '', honeymoon: DEFAULT_HONEYMOON }
 
 const KEY = 'wedding:v1'
 
@@ -30,6 +39,18 @@ export function normalize(raw: unknown): Saved {
     supports: Array.isArray(s.supports) ? s.supports : [],
     picks: Array.isArray(s.picks) ? s.picks : [],
     notes: typeof s.notes === 'string' ? s.notes : '',
+    honeymoon: normalizeHoneymoon(s.honeymoon),
+  }
+}
+
+function normalizeHoneymoon(raw: unknown): Honeymoon {
+  const h = (raw && typeof raw === 'object' ? raw : {}) as Partial<Honeymoon>
+  return {
+    dest: DESTS.some((d) => d.id === h.dest) ? h.dest! : DEFAULT_HONEYMOON.dest,
+    nights: typeof h.nights === 'number' && h.nights > 0 ? h.nights : DEFAULT_HONEYMOON.nights,
+    costs: h.costs && typeof h.costs === 'object' ? h.costs : {},
+    gifts: Array.isArray(h.gifts) ? h.gifts : DEFAULT_HONEYMOON.gifts,
+    quotes: Array.isArray(h.quotes) ? h.quotes : [],
   }
 }
 
@@ -75,6 +96,10 @@ export function setItems(fn: (items: Item[]) => Item[]) {
 
 export function setSupports(fn: (s: Support[]) => Support[]) {
   commit({ ...state, supports: fn(state.supports) })
+}
+
+export function setHoneymoon(fn: (h: Honeymoon) => Honeymoon) {
+  commit({ ...state, honeymoon: fn(state.honeymoon) })
 }
 
 export function setPicks(fn: (p: Pick[]) => Pick[]) {

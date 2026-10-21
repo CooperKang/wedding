@@ -5,23 +5,10 @@ type Section = { id: string; title: string; when: string; tips: string[]; money?
 
 const SECTIONS: Section[] = [
   {
-    id: 'honeymoon',
-    title: '신혼여행',
-    when: '6~8개월 전 예약',
-    money: '평균 1,030만원(듀오 2026 보고서, 최근 결혼한 1,000명 설문)',
-    tips: [
-      '성수기(5월, 10월) 직항은 6개월 전에도 좋은 시간대가 빠져요. 날짜가 정해지면 항공부터 잡으세요.',
-      '예식 다음 날 아침 출발은 생각보다 힘들어요. 하루 쉬고 떠나거나 오후 출발을 고려하세요.',
-      '여권 영문 이름이 항공권과 똑같은지, 유효기간이 6개월 이상 남았는지 확인하세요.',
-      '허니문 전문 여행사 패키지와 자유여행 견적을 같은 일정으로 비교해 보세요. 리조트 허니문 혜택(룸 업그레이드, 디너)은 예약할 때 혼인 증빙을 요구하기도 해요.',
-      '여행자 보험과 항공 취소 규정을 꼭 확인하세요.',
-    ],
-  },
-  {
     id: 'rings',
     title: '예물·예단·이바지',
     when: '4~6개월 전 합의',
-    money: '평균 예물 588만원, 예단 763만원, 이바지 155만원(듀오 2026, 하지 않은 커플은 빼고 낸 평균이라 실제보다 높게 보일 수 있어요)',
+    money: '평균 예물 588만원, 예단 1,030만원, 이바지 155만원(듀오 2026, 하지 않은 커플은 빼고 낸 평균이라 실제보다 높게 보일 수 있어요)',
     tips: [
       '요즘은 예단·이바지를 생략하거나 현금으로 간소화하는 경우가 많아요. 양가가 같은 기준으로 이해하고 있는지 상견례 때 확인하세요.',
       '예물 반지는 금값 영향이 커요. 제작 기간(2~4주)을 생각해 촬영 전에 받으세요.',
@@ -91,7 +78,7 @@ const SECTIONS: Section[] = [
 export default function More() {
   return (
     <>
-      <PageHead kicker="AND MORE" title="신혼여행·예물·청첩장" lead="예식장과 스드메 말고도 챙길 게 많아요. 시기와 경험에서 나온 팁을 모았어요." />
+      <PageHead kicker="AND MORE" title="예물·청첩장·당일" lead="예식장과 스드메 말고도 챙길 게 많아요. 시기와 경험에서 나온 팁을 모았어요." />
       <Wrap className="grid gap-6 md:grid-cols-2">
         {SECTIONS.map((s) => (
           <Panel key={s.id} id={s.id} title={s.title} aside={<Chip tone="gold">{s.when}</Chip>}>

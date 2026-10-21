@@ -93,7 +93,7 @@ async function crawlBlog() {
       const posts = s.parse(html)
       // 결과 0건이 캡차·차단 화면 때문이면 기록하지 않는다
       if (!posts.length && !s.empty(html)) throw new Error('결과를 읽지 못함(차단 가능성)')
-      reviews[v.id] = { ...summarizeBlog(posts, v.name), at: today() }
+      reviews[v.id] = { ...summarizeBlog(posts, v.name, v.cat), at: today() }
       done++
       fails = 0
     } catch (e) {

@@ -32,6 +32,8 @@ export function stripMoney(s: Saved): Shared {
     items: s.items.map((i) => ({ id: i.id, cat: i.cat, name: i.name, vendor: i.vendor, rating: i.rating, tip: i.tip, budget: 0, payments: [], memo: '' })),
     supports: [],
     picks: [],
+    // 여행지와 박수만 남기고 금액·견적은 뺀다
+    honeymoon: { dest: s.honeymoon.dest, nights: s.honeymoon.nights, costs: {}, gifts: [], quotes: [] },
   }
 }
 

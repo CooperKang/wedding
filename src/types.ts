@@ -85,6 +85,12 @@ export type Pick = {
   memo: string
 }
 
+// 신혼여행: 고른 여행지와 박수, 항목별로 직접 고친 금액(없으면 여행지 추정치), 선물 목록, 받은 견적
+export type HoneyCat = 'flight' | 'stay' | 'food' | 'tour' | 'transport' | 'gifts' | 'insurance' | 'etc'
+export type GiftRow = { id: string; who: string; count: number; unit: number }
+export type Quote = { id: string; name: string; dest: string; nights: number; price: number; inc: string[]; memo: string }
+export type Honeymoon = { dest: string; nights: number; costs: Partial<Record<HoneyCat, number>>; gifts: GiftRow[]; quotes: Quote[] }
+
 export type Saved = {
   v: 1
   profile: Profile
@@ -93,4 +99,5 @@ export type Saved = {
   supports: Support[]
   picks: Pick[]
   notes: string // 동생·친척에게 남기는 말
+  honeymoon: Honeymoon
 }

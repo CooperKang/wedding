@@ -18,7 +18,7 @@ export const catLabel = (c: BudgetCat) => BUDGET_CATS.find((x) => x.id === c)?.l
 // 출처
 // [참가격] 한국소비자원 참가격 결혼서비스 통계, 2026년 8월 계약 기준(전국 중간값)
 //   예식장 총액 1,550 / 스드메 패키지 298 / 본식 촬영 75.5 + 원판 50 / 한복 대여 27.5 / 생화장식 256
-// [듀오] 듀오 2026 결혼비용 보고서(2026.3 발표, 평균): 예물 588 / 예단 763 / 이바지 155 / 신혼여행 1,030
+// [듀오] 듀오 2026 결혼비용 보고서(2026.3 발표, 평균): 예물 588 / 예단 1,030 / 이바지 155 / 신혼여행 763 / 웨딩패키지(스드메) 471
 // 출처가 없는 칸(청첩장, 관리, 호텔·프리미엄 금액)은 위 수치로 가늠한 추정치다.
 export const PRICE_SOURCES = [
   { name: '한국소비자원 참가격 결혼서비스 가격 정보', url: 'https://www.price.go.kr/tprice/portal/wedding/areaStatistic.do', note: '2026년 8월 계약 기준, 지역별 중간값·평균' },
@@ -46,7 +46,7 @@ export const PRESETS: Preset[] = [
     id: 'standard',
     label: '표준',
     desc: '전국 중간값 수준의 웨딩홀과 스드메, 평균적인 예물·예단·신혼여행',
-    values: { venue: 1550, sdm: 300, snap: 125, hanbok: 30, rings: 590, gifts: 920, honeymoon: 1030, invite: 40, beauty: 100, etc: 250 },
+    values: { venue: 1550, sdm: 300, snap: 125, hanbok: 30, rings: 590, gifts: 1185, honeymoon: 763, invite: 40, beauty: 100, etc: 250 },
     estimated: ['invite', 'beauty', 'etc'],
   },
   {

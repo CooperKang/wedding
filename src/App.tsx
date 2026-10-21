@@ -6,6 +6,7 @@ import Home from './pages/Home'
 import Timeline from './pages/Timeline'
 import Venue from './pages/Venue'
 import Sdm from './pages/Sdm'
+import Honeymoon from './pages/Honeymoon'
 import More from './pages/More'
 import Policy from './pages/Policy'
 import Budget from './pages/Budget'
@@ -17,6 +18,7 @@ const PAGES: Record<Exclude<Route, 'view'>, () => React.JSX.Element> = {
   timeline: Timeline,
   venue: Venue,
   sdm: Sdm,
+  honeymoon: Honeymoon,
   more: More,
   policy: Policy,
   budget: Budget,

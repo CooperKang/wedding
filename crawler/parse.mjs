@@ -93,6 +93,90 @@ export const BAD_TAGS = [
   { tag: '짧은예식간격', words: ['예식 간격이 짧', '간격이 짧', '시간이 촉박', '급하게 진행'] },
 ]
 
+// 스드메·한복·예물은 볼 것이 달라서 분류마다 태그를 따로 둔다. 친절·가성비·추가금·불친절·강매는 공통.
+const KIND = { tag: '친절해요', words: ['친절'], not: ['불친절'] }
+const VALUE = { tag: '가성비', words: ['가성비', '합리적', '저렴'] }
+const EXTRA = BAD_TAGS[0]
+const RUDE = { tag: '불친절', words: ['불친절'] }
+const PUSH = { tag: '강매·영업', words: ['강매', '영업이 심', '계약 강요', '업셀', '업그레이드 권유', '권유가 심'] }
+
+export const TAGS_BY_CAT = {
+  hall: { good: GOOD_TAGS, bad: BAD_TAGS },
+  studio: {
+    good: [
+      { tag: '사진예뻐요', words: ['사진이 예', '사진 예쁘', '결과물 만족', '결과물이 예', '인생샷', '사진 만족'] },
+      { tag: '자연스러운보정', words: ['보정이 자연', '자연스러운 보정', '보정 만족', '보정 잘'] },
+      { tag: '리드잘해요', words: ['리드를 잘', '리드 잘', '편하게 찍', '분위기 메이커', '작가님 최고', '작가님이 친절', '작가님 친절'] },
+      { tag: '원본제공', words: ['원본 제공', '원본제공', '원본 무료', '원본 포함'] },
+      KIND,
+      VALUE,
+    ],
+    bad: [
+      { tag: '원본추가금', words: ['원본 추가', '원본 구매', '원본비', '원본 비용'] },
+      EXTRA,
+      { tag: '보정지연', words: ['오래 걸', '늦게 나', '지연', '한참 걸'] },
+      RUDE,
+      PUSH,
+    ],
+  },
+  dress: {
+    good: [
+      { tag: '드레스예뻐요', words: ['드레스가 예', '드레스 예쁘', '라인이 예', '핏이 예', '인생 드레스', '인생드레스'] },
+      { tag: '헬퍼만족', words: ['헬퍼 이모', '헬퍼이모', '헬퍼님', '이모님 최고', '이모님이 친절'] },
+      { tag: '선택폭넓음', words: ['종류가 많', '선택지가 많', '다양한 드레스', '드레스가 많'] },
+      KIND,
+      VALUE,
+    ],
+    bad: [
+      { tag: '업그레이드권유', words: ['업그레이드', '업차지', '추가 차지'] },
+      { tag: '피팅비', words: ['피팅비'] },
+      EXTRA,
+      { tag: '선택폭좁음', words: ['종류가 적', '선택지가 적', '드레스가 적'] },
+      RUDE,
+    ],
+  },
+  makeup: {
+    good: [
+      { tag: '메이크업만족', words: ['메이크업 만족', '화장이 예', '메이크업이 예', '찰떡', '인생 메이크업'] },
+      { tag: '오래가요', words: ['지속력', '오래 가', '무너지지 않', '다크닝 없', '안 무너'] },
+      { tag: '헤어만족', words: ['헤어 만족', '헤어가 예', '머리가 예', '헤어 예쁘'] },
+      { tag: '자연스러워요', words: ['자연스러', '과하지 않', '청순'] },
+      KIND,
+    ],
+    bad: [
+      { tag: '얼리스타트비', words: ['얼리스타트', '얼리 스타트', '얼리비', '얼리 비용'] },
+      { tag: '지정비', words: ['지정비', '원장 지정', '원장님 지정', '실장 지정'] },
+      { tag: '대기길어요', words: ['대기가 길', '오래 기다', '대기 시간이 길'] },
+      EXTRA,
+      RUDE,
+    ],
+  },
+  planner: {
+    good: [
+      { tag: '꼼꼼해요', words: ['꼼꼼', '세심', '하나하나 챙'] },
+      { tag: '응답빨라요', words: ['답장이 빠', '연락이 빠', '피드백 빠', '피드백이 빠', '답변이 빠'] },
+      { tag: '부담없어요', words: ['부담 없', '부담없', '강요 없', '강요하지 않'] },
+      KIND,
+      VALUE,
+    ],
+    bad: [PUSH, { tag: '연락느려요', words: ['연락이 안', '답장이 느', '연락 두절', '답이 늦'] }, EXTRA, RUDE],
+  },
+  hanbok: {
+    good: [
+      { tag: '색감예뻐요', words: ['색감', '색이 예', '컬러가 예'] },
+      { tag: '맞춤만족', words: ['맞춤 만족', '핏이 예', '잘 맞', '맞춤 한복 만족'] },
+      KIND,
+      VALUE,
+    ],
+    bad: [EXTRA, { tag: '선택폭좁음', words: ['종류가 적', '선택지가 적'] }, RUDE, PUSH],
+  },
+  jewelry: {
+    good: [{ tag: '디자인예뻐요', words: ['디자인이 예', '디자인 예쁘', '반지가 예', '예쁜 반지'] }, KIND, VALUE, { tag: '꼼꼼해요', words: ['꼼꼼', '세심'] }],
+    bad: [EXTRA, { tag: '제작지연', words: ['제작 기간이 길', '늦게 나', '지연'] }, RUDE, PUSH],
+  },
+}
+TAGS_BY_CAT.hotel = TAGS_BY_CAT.small = TAGS_BY_CAT.hall
+
 // 태그별로 그 말이 나온 글 수. 많이 나온 순으로 최대 5개.
 export function tagPosts(texts, tags) {
   const out = {}
@@ -146,7 +230,8 @@ export function coreName(name) {
 }
 
 // 글 목록 → 후기 신호. 업체 이름이 제목·미리보기에 나온 글만 센다.
-export function summarizeBlog(posts, vendorName) {
+export function summarizeBlog(posts, vendorName, cat = 'hall') {
+  const tags = TAGS_BY_CAT[cat] ?? TAGS_BY_CAT.hall
   const key = coreName(vendorName)
   const rel = posts.filter((p) => (p.title + p.snippet).replace(/\s+/g, '').includes(key))
   const texts = rel.map((p) => `${p.title} ${p.snippet}`)
@@ -160,8 +245,8 @@ export function summarizeBlog(posts, vendorName) {
     neg,
     ad: rel.filter((p) => count(p.title + p.snippet, SPONSORED) > 0).length,
     top: rel.slice(0, 3).map((p) => ({ t: p.title.slice(0, 80), u: p.url })),
-    good: tagPosts(texts, GOOD_TAGS),
-    bad: tagPosts(texts, BAD_TAGS),
+    good: tagPosts(texts, tags.good),
+    bad: tagPosts(texts, tags.bad),
   }
 }
 

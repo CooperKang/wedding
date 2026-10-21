@@ -85,6 +85,14 @@ describe('네이버 블로그 검색', () => {
     expect(s.bad).toEqual({ 혼잡해요: 1, 불친절: 1 })
   })
 
+  it('스드메는 분류에 맞는 태그로 센다', () => {
+    const posts = [{ url: 'a', title: 'B스튜디오 촬영 후기', snippet: '원본 제공이라 좋았고 작가님 친절, 다만 원본 추가 없이도 보정이 자연스러운 편' }]
+    expect(summarizeBlog(posts, 'B스튜디오', 'studio').good).toMatchObject({ 원본제공: 1, 리드잘해요: 1, 자연스러운보정: 1 })
+    const m = summarizeBlog([{ url: 'b', title: 'C메이크업 본식', snippet: '얼리스타트비 있었지만 지속력 최고' }], 'C메이크업', 'makeup')
+    expect(m.good).toMatchObject({ 오래가요: 1 })
+    expect(m.bad).toMatchObject({ 얼리스타트비: 1 })
+  })
+
   it('지점 이름을 떼고 비교한다', () => {
     expect(coreName('노블발렌티 대치점')).toBe('노블발렌티')
     expect(coreName('더채플앳 청담')).toBe('더채플앳청담')
