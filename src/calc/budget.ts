@@ -1,4 +1,5 @@
 import type { BudgetCat, Item, Payer, Payment, Support } from '../types'
+import { catLabel } from '../data/budget'
 
 export const PAYERS: { id: Payer; label: string }[] = [
   { id: 'us', label: '우리 둘(공동)' },
@@ -67,4 +68,20 @@ export function applyPreset(items: Item[], preset: Partial<Record<BudgetCat, num
   const have = new Set(next.map((i) => i.cat))
   const added = (Object.entries(preset) as [BudgetCat, number][]).filter(([cat]) => !have.has(cat)).map(([cat, b]) => make(cat, b))
   return [...next, ...added]
+}
+
+// 스프레드시트(엑셀·구글 시트)로 열 수 있는 CSV. 결제 한 건이 한 줄이고, 결제가 없는 항목도 한 줄 남긴다.
+// 엑셀이 한글을 깨뜨리지 않게 앞에 BOM을 붙인다.
+export function toCsv(items: Item[]) {
+  const cell = (v: string | number) => {
+    const s = String(v)
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
+  }
+  const head = ['분류', '항목', '업체', '예산(만원)', '구분', '금액(만원)', '낼 날', '낸 사람', '낸 날', '메모']
+  const rows = items.flatMap((it) => {
+    const base = [catLabel(it.cat), it.name, it.vendor, it.budget]
+    if (!it.payments.length) return [[...base, '', '', '', '', '', it.memo]]
+    return it.payments.map((p, i) => [...base.map((v) => (i ? '' : v)), p.label, p.amount, p.due ?? '', payerLabel(p.payer), p.paid ?? '', i ? '' : it.memo])
+  })
+  return '\ufeff' + [head, ...rows].map((r) => r.map(cell).join(',')).join('\r\n') + '\r\n'
 }

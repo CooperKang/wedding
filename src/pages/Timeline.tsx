@@ -75,6 +75,12 @@ export default function Timeline() {
           </p>
         </section>
 
+        <div className="mt-6">
+          <Note tone="plain" title="이 타임라인은 정답이 아니라 가이드예요">
+            많은 커플이 거치는 순서를 모아 둔 거라 꼭 이대로 할 필요는 없어요. 웨딩 촬영, 폐백, 예단처럼 우리에게 필요 없는 일은 건너뛰고, 더 하고 싶은 일(브라이덜 샤워, 가족 여행, 직접 만드는 영상 등)은 얼마든지 더해도 돼요. &lsquo;늦어도 몇 개월 전&rsquo; 표시는 인기 업체와 뒤에 이어지는 일까지 생각한 여유 기준이고, 각 항목의 &lsquo;왜 이때까지일까요?&rsquo;를 열면 이유와 최소 시점을 볼 수 있어요.
+          </Note>
+        </div>
+
         {pace && (pace === 'tight' || pace === 'rush') && (
           <div className="mt-6">
             <Note tone="alert" title={`예식까지 ${monthsLabel(days!)} 남았어요. 압축해서 준비하세요.`}>
@@ -123,16 +129,31 @@ export default function Timeline() {
                       return (
                         <li key={t.id} className={`flex items-start gap-3 rounded-xl border bg-white p-3.5 ${isLate ? 'border-alert/60' : 'border-rule'}`}>
                           <input type="checkbox" className="mt-1 size-5 shrink-0 accent-rose" checked={!!checks[t.id]} onChange={() => toggleCheck(t.id, now)} aria-label={`${t.title} 완료`} id={`t-${t.id}`} />
-                          <label htmlFor={`t-${t.id}`} className="min-w-0 flex-1 cursor-pointer">
-                            <span className="flex flex-wrap items-center gap-1.5">
-                              <span className={`text-[15px] font-bold ${checks[t.id] ? 'text-muted line-through' : ''}`}>{t.title}</span>
-                              {t.key && <Chip tone="rose">핵심</Chip>}
-                              {t.must !== undefined && <Chip tone={isLate ? 'alert' : 'plain'}>늦어도 {monthsLabel(t.must)} 전</Chip>}
-                              {t.when && <Chip tone="gold">우리 맞춤</Chip>}
-                            </span>
-                            <span className="mt-0.5 block text-[13px] leading-relaxed text-muted">{t.detail}</span>
-                            {checks[t.id] && <span className="num mt-1 block text-[12px] text-sage">{checks[t.id]} 완료</span>}
-                          </label>
+                          <div className="min-w-0 flex-1">
+                            <label htmlFor={`t-${t.id}`} className="block cursor-pointer">
+                              <span className="flex flex-wrap items-center gap-1.5">
+                                <span className={`text-[15px] font-bold ${checks[t.id] ? 'text-muted line-through' : ''}`}>{t.title}</span>
+                                {t.key && <Chip tone="rose">핵심</Chip>}
+                                {t.must !== undefined && <Chip tone={isLate ? 'alert' : 'plain'}>늦어도 {monthsLabel(t.must)} 전</Chip>}
+                                {t.when && <Chip tone="gold">우리 맞춤</Chip>}
+                              </span>
+                              <span className="mt-0.5 block text-[13px] leading-relaxed text-muted">{t.detail}</span>
+                              {checks[t.id] && <span className="num mt-1 block text-[12px] text-sage">{checks[t.id]} 완료</span>}
+                            </label>
+                            {t.why && (
+                              <details className="group mt-2 rounded-lg bg-paper px-3 py-2 text-[13px] leading-relaxed">
+                                <summary className="cursor-pointer list-none font-semibold text-rose">
+                                  <span className="mr-1 inline-block transition group-open:rotate-90">›</span>왜 {monthsLabel(t.must!)} 전까지일까요?
+                                </summary>
+                                <p className="mt-1.5">{t.why.reason}</p>
+                                {t.why.min && (
+                                  <p className="mt-1.5 text-muted">
+                                    <b className="text-ink">그런 걸 안 한다면</b> {t.why.min}
+                                  </p>
+                                )}
+                              </details>
+                            )}
+                          </div>
                         </li>
                       )
                     })}

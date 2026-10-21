@@ -108,3 +108,23 @@ export function hallSizeHint(guests: number) {
   if (guests <= 300) return '일반 웨딩홀의 중대형 홀, 호텔 중간 연회장이 알맞아요.'
   return '대형 컨벤션이나 호텔 그랜드볼룸급이 필요해요. 식당 좌석 수와 주차를 특히 꼼꼼히 보세요.'
 }
+
+// 원하는 날짜·시간·홀을 잡으려면 예식 몇 개월 전부터 연락해야 하는지. 업계에서 흔히 말하는 기준이고, 홀마다 예약을 여는 시점이 다르다.
+// usual: 보편적으로 준비를 시작하는 시점, popular: 봄·가을 토요일 점심 같은 인기 시간대를 원할 때
+export type BookingLead = { id: 'hall' | 'hotel' | 'outdoor' | 'small' | 'religious'; name: string; usual: number; popular: number; note: string }
+
+export const BOOKING_LEADS: BookingLead[] = [
+  { id: 'hall', name: '일반 웨딩홀·컨벤션', usual: 12, popular: 14, note: '인기 홀의 봄·가을 토요일 점심은 1년 전에 거의 다 차요. 홀마다 "1년 전 같은 달부터"처럼 예약을 여는 날이 정해진 곳이 많아요.' },
+  { id: 'hotel', name: '호텔', usual: 12, popular: 18, note: '하루 한두 건만 받는 곳이 많아 인기 날짜는 1년 반 전에도 마감돼요. 대기 명단에 이름을 올려 두면 취소 자리가 나기도 해요.' },
+  { id: 'outdoor', name: '야외·하우스 웨딩', usual: 10, popular: 12, note: '쾌적한 봄·가을에 몰리고 한 팀만 받는 곳이 많아 날짜 경쟁이 심해요.' },
+  { id: 'small', name: '스몰웨딩·공공 예식장', usual: 6, popular: 9, note: '공공 예식장은 기관마다 신청 시작일이 공고로 정해져 있어요. 원하는 곳의 공고를 먼저 확인하세요.' },
+  { id: 'religious', name: '성당·교회·사찰', usual: 6, popular: 12, note: '혼인 교육이나 사전 면담 일정이 함께 잡혀야 해서 일찍 문의하는 게 좋아요.' },
+]
+
+// 지금 남은 타임을 물어볼 때 쓰는 질문
+export const BOOKING_ASK = [
+  '"○월 ○일 토요일 점심 타임은 언제부터 예약받으세요?"',
+  '"지금 그날 남은 시간대와 홀이 있나요?"',
+  '"가계약(홀드)이 되나요? 며칠까지 잡아 둘 수 있나요?"',
+  '"취소 자리가 나면 연락받을 수 있는 대기 명단이 있나요?"',
+]

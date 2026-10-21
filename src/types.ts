@@ -65,7 +65,8 @@ export type Vendor = {
   homepage: string
 }
 
-export type Review = { posts: number; pos: number; neg: number; ad: number; top: { t: string; u: string }[]; at: string }
+// good/bad: 해시태그 → 그 말이 나온 글 수(많은 순). 해시태그를 모으기 전 후기에는 없다.
+export type Review = { posts: number; pos: number; neg: number; ad: number; top: { t: string; u: string }[]; at: string; good?: Record<string, number>; bad?: Record<string, number> }
 
 export type News = { title: string; source: string; url: string; date: string }
 

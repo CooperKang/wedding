@@ -3,6 +3,7 @@ import { signal, tone, useCrawled } from '../data/crawled'
 import { REGIONS, regionLabel } from '../data/regions'
 import { kakaoPlace } from '../calc/route'
 import { CAT_LABEL } from '../data/vendorCats'
+import { BOOKING_LEADS } from '../data/venues'
 import type { Review, Vendor, VendorCat } from '../types'
 import { Chip, Field, inputCls } from './ui'
 
@@ -74,7 +75,7 @@ export default function VendorList({ cats, region, onPick, picked = [], parkingF
       </div>
 
       <p className="text-[13px] text-muted">
-        {regionLabel(reg)} {list.length}곳 · 카카오맵 검색 결과와 네이버 블로그 후기 제목·미리보기를 모은 참고 신호예요
+        {regionLabel(reg)} {list.length}곳 · 카카오맵 검색 결과와 블로그 후기 제목·미리보기를 모은 참고 신호예요
         {data.meta.vendors?.at && ` (${data.meta.vendors.at} 수집)`}. 가격은 업체에 직접 확인하세요.
       </p>
 
@@ -95,6 +96,7 @@ export default function VendorList({ cats, region, onPick, picked = [], parkingF
 
 function VendorCard({ v, r, onPick, picked }: { v: Vendor; r?: Review; onPick?: (v: Vendor) => void; picked: boolean }) {
   const t = tone(v, r)
+  const lead = BOOKING_LEADS.find((b) => b.id === v.cat)
   const blogSearch = `https://search.naver.com/search.naver?ssc=tab.blog.all&query=${encodeURIComponent(`${v.name} 후기`)}`
   return (
     <li className="flex min-w-0 flex-col rounded-xl border border-rule bg-white p-4">
@@ -136,12 +138,31 @@ function VendorCard({ v, r, onPick, picked }: { v: Vendor; r?: Review; onPick?: 
             블로그 후기 {r.posts}건 · <span className="text-sage">좋은 말 {r.pos}</span> · <span className="text-alert">아쉬운 말 {r.neg}</span>
             {r.ad > 0 && <span className="text-muted"> · 협찬 표시 {r.ad}건</span>}
           </p>
+          {(Object.keys(r.good ?? {}).length > 0 || Object.keys(r.bad ?? {}).length > 0) && (
+            <div className="mt-1.5 flex flex-wrap gap-1" aria-label="후기에서 자주 나온 말">
+              {Object.entries(r.good ?? {}).map(([t, n]) => (
+                <span key={t} className="rounded-full bg-sage-soft px-2 py-0.5 font-semibold text-sage" title={`좋았다는 글 ${n}건`}>
+                  #{t} <span className="num font-normal opacity-80">{n}</span>
+                </span>
+              ))}
+              {Object.entries(r.bad ?? {}).map(([t, n]) => (
+                <span key={t} className="rounded-full bg-alert-soft px-2 py-0.5 font-semibold text-alert" title={`아쉬웠다는 글 ${n}건`}>
+                  #{t} <span className="num font-normal opacity-80">{n}</span>
+                </span>
+              ))}
+            </div>
+          )}
           {r.top[0] && (
             <a href={r.top[0].u} target="_blank" rel="noreferrer" className="mt-0.5 block truncate text-muted underline-offset-2 hover:underline">
               “{r.top[0].t}”
             </a>
           )}
         </div>
+      )}
+      {lead && (
+        <p className="mt-2 text-[12px] leading-snug text-muted">
+          예약: 보통 <b className="text-ink">{lead.usual}개월 전</b>, 봄·가을 토요일 점심은 <b className="text-rose">{lead.popular}개월+ 전</b>부터 문의. 여는 날은 홀마다 달라서 전화로 먼저 확인하세요.
+        </p>
       )}
       <div className="mt-auto flex flex-wrap gap-x-3 gap-y-1 pt-3 text-[13px] font-semibold text-rose">
         <a href={kakaoPlace(v.id)} target="_blank" rel="noreferrer" className="underline-offset-4 hover:underline">

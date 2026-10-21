@@ -1,18 +1,17 @@
 import { useState } from 'react'
 import { setItems, setSupports, uid, useStore } from '../store'
 import { BUDGET_CATS, PRESETS, PRICE_SOURCES, areaOf, catLabel, presetFor, presetTotal } from '../data/budget'
-import { PAYERS, applyPreset, payerLabel, spent, summarize, upcoming } from '../calc/budget'
+import { PAYERS, applyPreset, payerLabel, summarize, upcoming } from '../calc/budget'
 import { today } from '../calc/timeline'
 import { regionLabel } from '../data/regions'
 import { man } from '../format'
-import { Button, Chip, NumberInput, Note, PageHead, Panel, Stat, Wrap, inputCls } from '../components/ui'
+import { Button, Chip, NumberInput, PageHead, Panel, Stat, Wrap, inputCls } from '../components/ui'
+import BudgetSheet from '../components/BudgetSheet'
 import type { BudgetCat, BudgetStyle, Item, Payer, Payment } from '../types'
 
 const newItem = (cat: BudgetCat, budget = 0): Item => ({ id: uid(), cat, name: catLabel(cat), vendor: '', budget, payments: [], rating: 0, memo: '', tip: '' })
-const LABELS = ['계약금', '중도금', '잔금', '추가금', '현장 결제']
 
-const updateItem = (id: string, patch: Partial<Item>) => setItems((its) => its.map((i) => (i.id === id ? { ...i, ...patch } : i)))
-const updatePay = (item: Item, pid: string, patch: Partial<Payment>) => updateItem(item.id, { payments: item.payments.map((p) => (p.id === pid ? { ...p, ...patch } : p)) })
+const updatePay = (item: Item, pid: string, patch: Partial<Payment>) => setItems((its) => its.map((i) => (i.id === item.id ? { ...i, payments: i.payments.map((p) => (p.id === pid ? { ...p, ...patch } : p)) } : i)))
 
 export default function Budget() {
   const { profile, items, supports } = useStore()
@@ -20,7 +19,6 @@ export default function Budget() {
   const s = summarize(items, supports)
   const up = upcoming(items, now)
   const [style, setStyle] = useState<BudgetStyle>(profile.budgetStyle)
-  const [addCat, setAddCat] = useState<BudgetCat>('venue')
   const preset = presetFor(style, profile.region)
   // 지원금 중 아직 결제에 배정하지 않은 돈(지원해 준 사람 이름으로 잡힌 결제를 뺀다)
   const remainSupport = s.byPayer.reduce((n, p) => n + Math.max(0, p.support - p.spent), 0)
@@ -90,7 +88,12 @@ export default function Budget() {
           </p>
         </Panel>
 
-        <Panel title="2. 양가 지원금" aside={<span className="num text-[14px] font-bold text-rose">합계 {man(s.support)}</span>}>
+        <Panel title="2. 장부" aside={<span className="text-[13px] text-muted">{items.length}개 항목 · 만원 단위</span>}>
+          <p className="text-[14px] leading-relaxed text-muted">엑셀처럼 칸을 눌러 바로 고치세요. 한 줄이 결제 한 건이에요. 항목마다 계약금·중도금·잔금을 줄로 더하고, 낼 날과 낸 사람(예랑 부모님, 예신 부모님 등)을 고르면 아래 합계와 다가오는 지급이 바로 계산돼요.</p>
+          <BudgetSheet items={items} now={now} />
+        </Panel>
+
+        <Panel title="3. 양가 지원금" aside={<span className="num text-[14px] font-bold text-rose">합계 {man(s.support)}</span>}>
           <p className="text-[14px] leading-relaxed text-muted">부모님이 도와주시기로 한 금액을 적어 두세요. 아래 결제마다 &lsquo;낸 사람&rsquo;을 고르면 지원금 중 얼마가 쓰였는지 계산돼요. 혼인 증여재산 공제(최대 1억원) 신고 근거로도 쓸 수 있어요.</p>
           <ul className="space-y-2">
             {supports.map((sp) => (
@@ -120,7 +123,7 @@ export default function Budget() {
           </div>
         </Panel>
 
-        <Panel title="3. 한눈에 보기">
+        <Panel title="4. 한눈에 보기">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             <Stat label="총예산" value={man(s.budget)} />
             <Stat label="계약·지출 합계" value={man(s.spent)} tone={s.spent > s.budget && s.budget > 0 ? 'alert' : undefined} sub={s.budget ? `예산의 ${Math.round((s.spent / s.budget) * 100)}%` : undefined} />
@@ -185,7 +188,7 @@ export default function Budget() {
           )}
         </Panel>
 
-        <Panel title="4. 다가오는 지급" aside={<span className="text-[13px] text-muted">날짜순</span>}>
+        <Panel title="5. 다가오는 지급" aside={<span className="text-[13px] text-muted">날짜순</span>}>
           {!up.length && <p className="text-[14px] text-muted">아직 내야 할 결제가 없어요. 아래 항목에 계약금·잔금을 추가해 보세요.</p>}
           <ol className="space-y-2">
             {up.map((u) => (
@@ -210,144 +213,7 @@ export default function Budget() {
           </ol>
         </Panel>
 
-        <Panel title="5. 항목별 기록" aside={<span className="text-[13px] text-muted">{items.length}개 항목</span>}>
-          {!items.length && <Note title="아직 항목이 없어요">위에서 예산 프리셋을 채우거나, 아래에서 항목을 추가하세요.</Note>}
-          <div className="space-y-3">
-            {BUDGET_CATS.flatMap((c) => items.filter((i) => i.cat === c.id)).map((it) => (
-              <ItemCard key={it.id} item={it} now={now} />
-            ))}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <select aria-label="추가할 항목 분류" className={`${inputCls} w-auto`} value={addCat} onChange={(e) => setAddCat(e.target.value as BudgetCat)}>
-              {BUDGET_CATS.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-            <Button onClick={() => setItems((its) => [...its, newItem(addCat)])}>+ 항목 추가</Button>
-          </div>
-        </Panel>
       </Wrap>
     </>
-  )
-}
-
-function ItemCard({ item, now }: { item: Item; now: string }) {
-  const [open, setOpen] = useState(item.payments.length === 0 && !item.vendor)
-  const total = spent(item)
-  const over = item.budget > 0 && total > item.budget
-  return (
-    <article className="rounded-xl border border-rule bg-white">
-      <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 p-4 text-left">
-        <Chip tone="gold">{catLabel(item.cat)}</Chip>
-        <span className="min-w-0 flex-1 text-[15px] font-bold">
-          {item.name || catLabel(item.cat)}
-          {item.vendor && <span className="ml-1.5 font-normal text-muted">{item.vendor}</span>}
-        </span>
-        <span className={`num text-[14px] ${over ? 'font-bold text-alert' : 'text-muted'}`}>
-          {man(total)} / {man(item.budget)}
-        </span>
-        <span className="text-[12px] text-muted">{open ? '접기' : '펼치기'}</span>
-      </button>
-      {open && (
-        <div className="space-y-4 border-t border-rule p-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="block text-[13px] font-semibold">
-              항목 이름
-              <input className={`${inputCls} mt-1`} value={item.name} onChange={(e) => updateItem(item.id, { name: e.target.value })} />
-            </label>
-            <label className="block text-[13px] font-semibold">
-              업체
-              <input className={`${inputCls} mt-1`} value={item.vendor} placeholder="업체 이름" onChange={(e) => updateItem(item.id, { vendor: e.target.value })} />
-            </label>
-            <div className="text-[13px] font-semibold">
-              예산
-              <div className="mt-1">
-                <NumberInput compact value={item.budget} suffix="만원" label="예산" onChange={(v) => updateItem(item.id, { budget: v })} />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <p className="mb-2 text-[13px] font-bold">결제</p>
-            <ul className="space-y-2">
-              {item.payments.map((p) => (
-                <li key={p.id} className="grid grid-cols-2 gap-2 rounded-lg bg-paper p-2 sm:grid-cols-[120px_130px_150px_150px_1fr_auto] sm:items-center">
-                  <input list="pay-labels" aria-label="결제 이름" className={`${inputCls} h-10`} value={p.label} onChange={(e) => updatePay(item, p.id, { label: e.target.value })} />
-                  <NumberInput compact value={p.amount} suffix="만원" label="금액" onChange={(v) => updatePay(item, p.id, { amount: v })} />
-                  <label className="text-[11px] text-muted">
-                    낼 날
-                    <input type="date" className={`${inputCls} h-9 text-[13px]`} value={p.due ?? ''} onChange={(e) => updatePay(item, p.id, { due: e.target.value || null })} />
-                  </label>
-                  <label className="text-[11px] text-muted">
-                    낸 사람
-                    <select className={`${inputCls} h-9 text-[13px]`} value={p.payer} onChange={(e) => updatePay(item, p.id, { payer: e.target.value as Payer })}>
-                      {PAYERS.map((x) => (
-                        <option key={x.id} value={x.id}>
-                          {x.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="flex items-center gap-2 text-[13px] font-semibold">
-                    <input type="checkbox" className="size-5 accent-rose" checked={!!p.paid} onChange={(e) => updatePay(item, p.id, { paid: e.target.checked ? now : null })} />
-                    {p.paid ? <span className="num text-sage">{p.paid} 냄</span> : '아직'}
-                  </label>
-                  <button type="button" className="text-[13px] text-muted hover:text-alert" onClick={() => updateItem(item.id, { payments: item.payments.filter((x) => x.id !== p.id) })}>
-                    삭제
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <datalist id="pay-labels">
-              {LABELS.map((l) => (
-                <option key={l} value={l} />
-              ))}
-            </datalist>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {LABELS.slice(0, 3).map((l) => (
-                <Button key={l} tone="ghost" onClick={() => updateItem(item.id, { payments: [...item.payments, { id: uid(), label: l, amount: 0, due: null, paid: null, payer: 'us' }] })}>
-                  + {l}
-                </Button>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-[auto_1fr_1fr]">
-            <fieldset>
-              <legend className="text-[13px] font-semibold">만족도</legend>
-              <div className="mt-1 flex">
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <button key={n} type="button" aria-label={`${n}점`} aria-pressed={item.rating >= n} onClick={() => updateItem(item.id, { rating: item.rating === n ? 0 : n })} className="px-0.5 text-[24px] leading-none text-rule aria-pressed:text-gold">
-                    ★
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <label className="block text-[13px] font-semibold">
-              메모(투어 답변, 계약 조건)
-              <textarea className={`${inputCls} mt-1 h-20 py-2`} value={item.memo} onChange={(e) => updateItem(item.id, { memo: e.target.value })} />
-            </label>
-            <label className="block text-[13px] font-semibold">
-              다음 사람에게 남길 팁(기록집에 실려요)
-              <textarea className={`${inputCls} mt-1 h-20 py-2`} value={item.tip} placeholder="예: 주차는 넉넉했지만 식당이 붐볐어요" onChange={(e) => updateItem(item.id, { tip: e.target.value })} />
-            </label>
-          </div>
-
-          <div className="text-right">
-            <button
-              type="button"
-              className="text-[13px] text-muted hover:text-alert"
-              onClick={() => {
-                if (confirm(`'${item.name || catLabel(item.cat)}' 항목을 지울까요?`)) setItems((its) => its.filter((i) => i.id !== item.id))
-              }}
-            >
-              항목 삭제
-            </button>
-          </div>
-        </div>
-      )}
-    </article>
   )
 }

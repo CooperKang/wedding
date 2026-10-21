@@ -68,3 +68,22 @@ describe('프리셋', () => {
     expect(next).toHaveLength(3)
   })
 })
+
+describe('CSV 내보내기', () => {
+  it('결제 한 건이 한 줄이고, 결제가 없는 항목도 남긴다', async () => {
+    const { toCsv } = await import('./budget')
+    const csv = toCsv([
+      { id: 'a', cat: 'venue', name: '예식장', vendor: '어느 홀, 3층', budget: 1500, rating: 0, memo: '시식 4명', tip: '', payments: [
+        { id: 'p1', label: '계약금', amount: 100, due: '2026-09-01', paid: '2026-09-01', payer: 'groomParents' },
+        { id: 'p2', label: '잔금', amount: 1400, due: '2027-05-15', paid: null, payer: 'us' },
+      ] },
+      { id: 'b', cat: 'honeymoon', name: '신혼여행', vendor: '', budget: 600, rating: 0, memo: '', tip: '', payments: [] },
+    ])
+    const lines = csv.replace(/^﻿/, '').trim().split('\r\n')
+    expect(csv.startsWith('﻿')).toBe(true)
+    expect(lines).toHaveLength(4)
+    expect(lines[1]).toBe('예식장,예식장,"어느 홀, 3층",1500,계약금,100,2026-09-01,예랑 부모님,2026-09-01,시식 4명')
+    expect(lines[2]).toBe(',,,,잔금,1400,2027-05-15,우리 둘(공동),,')
+    expect(lines[3]).toBe('신혼여행,신혼여행,,600,,,,,,')
+  })
+})

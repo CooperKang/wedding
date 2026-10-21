@@ -25,19 +25,24 @@ function parse(): Parsed {
   return { route: ROUTES.some((r) => r.id === id) ? (id as Route) : 'home', arg: rest.join('/') }
 }
 
-export function href(route: Route) {
-  return route === 'home' ? '#/' : `#/${route}`
+// anchor를 주면 그 화면으로 옮긴 뒤 id가 anchor인 곳으로 내려간다(#/venue/fair)
+export function href(route: Route, anchor?: string) {
+  if (route === 'home') return '#/'
+  return anchor ? `#/${route}/${anchor}` : `#/${route}`
 }
 
 export function useRoute() {
   const [p, setP] = useState<Parsed>(parse)
   useEffect(() => {
-    const onHash = () => {
-      setP(parse())
-      window.scrollTo({ top: 0 })
-    }
+    const onHash = () => setP(parse())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
+  // 화면이 그려진 뒤(자식 effect가 먼저 돈다) 맨 위나 anchor로 옮긴다
+  useEffect(() => {
+    const el = p.route !== 'view' && p.arg ? document.getElementById(p.arg) : null
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    else window.scrollTo({ top: 0 })
+  }, [p])
   return p
 }

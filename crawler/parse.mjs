@@ -67,6 +67,45 @@ export const SPONSORED = ['협찬', '제공받', '원고료', '소정의', '지�
 
 const count = (s, words) => words.reduce((n, w) => n + (s.split(w).length - 1), 0)
 
+// 후기에서 무엇이 좋고 무엇이 아쉬웠는지 해시태그로 묶는다. 글 하나에 여러 번 나와도 한 번만 센다.
+// not: 이 말이 들어 있으면 그 태그로 세지 않는다(예: '추가금 0원').
+export const GOOD_TAGS = [
+  { tag: '식사맛집', words: ['맛있', '음식이 좋', '식사가 좋', '음식 만족', '식사 만족', '뷔페 맛', '음식 퀄리티'] },
+  { tag: '주차편해요', words: ['주차 편', '주차편', '주차가 편', '주차 넉넉', '주차장 넓', '주차장이 넓', '주차 여유', '주차 걱정 없'] },
+  { tag: '교통편리', words: ['역에서 가까', '역 바로', '역세권', '교통 편', '교통이 편', '접근성 좋', '접근성이 좋', '셔틀'] },
+  { tag: '홀이예뻐요', words: ['홀이 예', '홀 예쁘', '예쁜 홀', '화사', '웅장', '층고', '천장이 높', '분위기 좋', '분위기가 좋', '채광'] },
+  { tag: '친절해요', words: ['친절'], not: ['불친절'] },
+  { tag: '가성비', words: ['가성비', '합리적', '저렴'] },
+  { tag: '여유로운진행', words: ['단독홀', '단독 홀', '여유롭', '여유 있', '분리예식', '분리 예식', '동선 좋', '동선이 좋'] },
+  { tag: '하객칭찬', words: ['하객 만족', '하객분들 만족', '하객들 만족', '칭찬'] },
+  { tag: '꼼꼼한진행', words: ['꼼꼼', '세심', '진행이 매끄', '매끄럽'] },
+]
+export const BAD_TAGS = [
+  { tag: '추가금주의', words: ['추가금', '추가 비용', '추가비용'], not: NOT_NEGATIVE },
+  { tag: '주차불편', words: ['주차 불편', '주차가 불편', '주차 힘들', '주차가 힘들', '주차 협소', '주차장이 좁', '주차 대란', '주차난', '주차 지옥'] },
+  { tag: '식사아쉬움', words: ['음식이 별로', '음식 별로', '식사가 별로', '식사 별로', '맛이 없', '맛없', '음식이 아쉬', '식사가 아쉬', '식사 아쉬', '음식 아쉬'] },
+  { tag: '혼잡해요', words: ['혼잡', '북적', '붐비', '정신없', '좁아', '좁은'] },
+  { tag: '불친절', words: ['불친절'] },
+  { tag: '강매·영업', words: ['강매', '영업이 심', '계약 강요', '업셀'] },
+  { tag: '위약금·환불', words: ['위약금', '환불'] },
+  { tag: '어두운홀', words: ['어두운', '어둡', '층고가 낮', '천장이 낮'] },
+  { tag: '짧은예식간격', words: ['예식 간격이 짧', '간격이 짧', '시간이 촉박', '급하게 진행'] },
+]
+
+// 태그별로 그 말이 나온 글 수. 많이 나온 순으로 최대 5개.
+export function tagPosts(texts, tags) {
+  const out = {}
+  for (const { tag, words, not = [] } of tags) {
+    const n = texts.filter((t) => count(t, words) > count(t, not)).length
+    if (n) out[tag] = n
+  }
+  return Object.fromEntries(
+    Object.entries(out)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5),
+  )
+}
+
 // 네이버 블로그 검색 결과 HTML → 글 목록(제목, 미리보기, 주소)
 export function parseBlog(html) {
   const byUrl = new Map()
@@ -109,7 +148,8 @@ export function coreName(name) {
 export function summarizeBlog(posts, vendorName) {
   const key = coreName(vendorName)
   const rel = posts.filter((p) => (p.title + p.snippet).replace(/\s+/g, '').includes(key))
-  const all = rel.map((p) => `${p.title} ${p.snippet}`).join(' ')
+  const texts = rel.map((p) => `${p.title} ${p.snippet}`)
+  const all = texts.join(' ')
   // '불친절' 안의 '친절'처럼 겹치는 말은 긍정에서 뺀다
   const neg = Math.max(0, count(all, NEGATIVE) - count(all, NOT_NEGATIVE))
   const pos = Math.max(0, count(all, POSITIVE) - count(all, ['불친절', '안 좋았', '별로 좋았']))
@@ -119,6 +159,8 @@ export function summarizeBlog(posts, vendorName) {
     neg,
     ad: rel.filter((p) => count(p.title + p.snippet, SPONSORED) > 0).length,
     top: rel.slice(0, 3).map((p) => ({ t: p.title.slice(0, 80), u: p.url })),
+    good: tagPosts(texts, GOOD_TAGS),
+    bad: tagPosts(texts, BAD_TAGS),
   }
 }
 

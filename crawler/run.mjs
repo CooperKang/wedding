@@ -77,8 +77,12 @@ const BLOG_SOURCES = [
 async function crawlBlog() {
   const vendors = await readJson('vendors.json', [])
   const reviews = await readJson('reviews.json', {})
-  // BLOG_SOURCE=daum, BLOG_LIMIT=5 처럼 시험할 때 바꿀 수 있다
-  const targets = pickBlogTargets(vendors, reviews, Number(process.env.BLOG_LIMIT) || BLOG_PER_RUN)
+  // BLOG_SOURCE=daum, BLOG_LIMIT=5, BLOG_CATS=hall,hotel,small 처럼 시험하거나 일부만 돌릴 때 바꿀 수 있다
+  const cats = process.env.BLOG_CATS?.split(',')
+  const pool = cats ? vendors.filter((v) => cats.includes(v.cat)) : vendors
+  // 해시태그(good/bad)가 생기기 전에 모은 후기는 한 번도 안 본 것처럼 먼저 다시 본다
+  const stale = Object.fromEntries(Object.entries(reviews).map(([id, r]) => [id, r.good ? r : { ...r, at: '' }]))
+  const targets = pickBlogTargets(pool, stale, Number(process.env.BLOG_LIMIT) || BLOG_PER_RUN)
   let src = Math.max(0, BLOG_SOURCES.findIndex((b) => b.name === process.env.BLOG_SOURCE))
   let fails = 0
   let done = 0

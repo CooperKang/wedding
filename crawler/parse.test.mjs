@@ -72,6 +72,19 @@ describe('네이버 블로그 검색', () => {
     expect(s.ad).toBe(1)
   })
 
+  it('좋은 점·아쉬운 점을 해시태그로 묶고 글 수를 센다', () => {
+    const s = summarizeBlog(
+      [
+        { url: 'a', title: 'A홀 후기', snippet: '음식이 맛있고 주차장이 넓어서 좋았어요. 맛있다는 말 많이 들음' },
+        { url: 'b', title: 'A홀 본식', snippet: '식사 맛있었지만 로비가 너무 혼잡했어요' },
+        { url: 'c', title: 'A홀 셀렉 후기, 추가금 0원', snippet: '직원이 불친절' },
+      ],
+      'A홀',
+    )
+    expect(s.good).toEqual({ 식사맛집: 2, 주차편해요: 1 })
+    expect(s.bad).toEqual({ 혼잡해요: 1, 불친절: 1 })
+  })
+
   it('지점 이름을 떼고 비교한다', () => {
     expect(coreName('노블발렌티 대치점')).toBe('노블발렌티')
     expect(coreName('더채플앳 청담')).toBe('더채플앳청담')

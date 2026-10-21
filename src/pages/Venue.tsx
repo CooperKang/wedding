@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { CONTRACT_CHECKS, FAIR_TIPS, hallSizeHint } from '../data/venues'
+import { BOOKING_ASK, BOOKING_LEADS, CONTRACT_CHECKS, FAIR_TIPS, hallSizeHint } from '../data/venues'
+import { bookingPlan, ym } from '../calc/booking'
+import { today } from '../calc/timeline'
 import { MARKET_FACTS, PRICE_SOURCES } from '../data/budget'
 import { orderedChecks, rankVenues } from '../calc/advice'
 import { PRIORITIES } from '../data/options'
@@ -14,6 +16,7 @@ export default function Venue() {
   const groups = [...new Set(checks.map((c) => c.group))]
   const [ticked, setTicked] = useState<Record<string, boolean>>({})
   const prioLabel = (id: string) => PRIORITIES.find((x) => x.id === id)?.label
+  const plan = bookingPlan(p, today())
 
   return (
     <>
@@ -49,6 +52,48 @@ export default function Venue() {
                 </div>
               </article>
             ))}
+          </div>
+        </Panel>
+
+        <Panel title="원하는 날짜·시간·홀, 언제부터 연락할까?" id="booking">
+          {plan.from && plan.usualFrom ? (
+            <Note tone={plan.late ? 'alert' : 'rose'} title={plan.late ? '보편적인 연락 시점이 이미 지났어요. 지금 바로 물어보세요' : `${ym(plan.from)}부터 연락해 보세요`}>
+              {plan.lead.name} 기준으로, {plan.peak ? `봄·가을 주말 예식이라 인기 시간대(토요일 점심)를 원하면 ${plan.lead.popular}개월 전인 ${ym(plan.from)}부터 전화해 보는 게 좋아요. ` : ''}
+              보편적으로는 {plan.lead.usual}개월 전인 {ym(plan.usualFrom)}부터 준비해요.{' '}
+              {plan.late ? '취소로 빈 자리나 일요일·저녁 타임은 지금도 남아 있는 경우가 많아요.' : '하지만 홀마다 예약을 여는 날이 달라서, 마음에 둔 곳이 있다면 먼저 그 예식장에 물어봐야 해요.'}
+            </Note>
+          ) : (
+            <Note tone="plain" title="처음 화면에서 예식일을 넣으면 우리 날짜로 계산해 드려요">
+              보편적으로 웨딩홀은 12개월 전부터 준비하고, 인기 홀은 14개월 전부터 전화해 보는 커플이 많아요.
+            </Note>
+          )}
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px] sm:text-[14px]">
+              <thead>
+                <tr className="border-b border-rule text-left text-[12px] text-muted">
+                  <th className="py-2 font-semibold">유형</th>
+                  <th className="py-2 text-right font-semibold whitespace-nowrap">보편적으로</th>
+                  <th className="py-2 pl-3 text-right font-semibold whitespace-nowrap">인기 시간대</th>
+                </tr>
+              </thead>
+              <tbody>
+                {BOOKING_LEADS.map((b) => (
+                  <tr key={b.id} className={`border-b border-rule/60 align-top ${b.id === plan.lead.id ? 'bg-rose-soft/40' : ''}`}>
+                    <td className="py-2 pr-2">
+                      <span className="font-semibold">{b.name}</span>
+                      <span className="mt-0.5 block text-[12px] leading-snug text-muted">{b.note}</span>
+                    </td>
+                    <td className="num py-2 text-right whitespace-nowrap">{b.usual}개월 전</td>
+                    <td className="num py-2 pl-3 text-right font-semibold whitespace-nowrap text-rose">{b.popular}개월+ 전</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <p className="mb-1.5 text-[14px] font-bold">가장 정확한 건 그 예식장에 직접 묻는 거예요</p>
+            <Bullets items={BOOKING_ASK} />
+            <p className="mt-2 text-[13px] text-muted">인기 시간대는 봄(4~5월)·가을(9~11월) 토요일 점심 기준이에요. 비수기, 일요일, 저녁 예식은 4~6개월 전에도 원하는 홀을 잡는 경우가 많아요. 아래 업체 목록의 전화번호로 바로 물어볼 수 있어요.</p>
           </div>
         </Panel>
 

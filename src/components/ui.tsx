@@ -60,7 +60,8 @@ function toText(v: number) {
   return v ? formatInput(String(v), false) : ''
 }
 
-export function NumberInput({ value, onChange, suffix, label, id, compact }: { value: number; onChange: (v: number) => void; suffix: string; label?: string; id?: string; compact?: boolean }) {
+// cell: 표 안에서 쓰는 테두리 없는 칸(스프레드시트처럼)
+export function NumberInput({ value, onChange, suffix, label, id, compact, cell }: { value: number; onChange: (v: number) => void; suffix: string; label?: string; id?: string; compact?: boolean; cell?: boolean }) {
   const [text, setText] = useState(() => toText(value))
   const [last, setLast] = useState(value)
   // 다른 곳(프리셋, 초기화)에서 값이 바뀌면 입력칸도 맞춘다
@@ -89,7 +90,11 @@ export function NumberInput({ value, onChange, suffix, label, id, compact }: { v
 
   return (
     <div
-      className={`flex items-center rounded-xl border border-rule bg-white px-3 focus-within:border-rose focus-within:ring-2 focus-within:ring-rose/20 ${compact ? 'h-10' : 'h-12'}`}
+      className={
+        cell
+          ? 'flex h-9 items-center rounded-md border border-transparent px-2 hover:border-rule focus-within:border-rose focus-within:bg-white focus-within:ring-2 focus-within:ring-rose/20'
+          : `flex items-center rounded-xl border border-rule bg-white px-3 focus-within:border-rose focus-within:ring-2 focus-within:ring-rose/20 ${compact ? 'h-10' : 'h-12'}`
+      }
     >
       <input
         id={id}
@@ -98,12 +103,12 @@ export function NumberInput({ value, onChange, suffix, label, id, compact }: { v
         autoComplete="off"
         placeholder="0"
         aria-label={label}
-        className={`num w-full min-w-0 bg-transparent font-semibold outline-none placeholder:text-muted/50 ${compact ? 'text-[15px]' : 'text-[17px]'}`}
+        className={`num w-full min-w-0 bg-transparent font-semibold outline-none placeholder:text-muted/50 ${cell ? 'text-right text-[14px]' : compact ? 'text-[15px]' : 'text-[17px]'}`}
         value={text}
         onChange={change}
         onBlur={() => setText(toText(value))}
       />
-      <span className="ml-1.5 shrink-0 text-[13px] text-muted">{suffix}</span>
+      {suffix && <span className={`shrink-0 text-muted ${cell ? 'ml-1 text-[12px]' : 'ml-1.5 text-[13px]'}`}>{suffix}</span>}
     </div>
   )
 }

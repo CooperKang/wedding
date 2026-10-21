@@ -182,7 +182,7 @@ export default function Home() {
       <Wrap className="mt-6">
         <Note tone="rose" title="박람회는 무작정 가지 마세요">
           기준 없이 가면 &ldquo;오늘만 이 가격&rdquo;에 계약금부터 걸기 쉬워요. 예산 상한, 하객 수, 원하는 날짜·지역을 정하고, 후보 업체 부스만 들러 같은 조건으로 견적을 받아 오세요.{' '}
-          <a className="font-semibold underline underline-offset-4" href={href('venue') + '#fair'}>
+          <a className="font-semibold underline underline-offset-4" href={href('venue', 'fair')}>
             박람회 사용법
           </a>
         </Note>
